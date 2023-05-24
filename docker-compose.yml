@@ -1,0 +1,106 @@
+version: '3.5'
+
+services:
+  mmdvmhost:
+    build: ./mmdvmhost
+    container_name: mmdvmhost
+    volumes:
+      - ./config/MMDVM.ini:/config/MMDVM.ini
+      - ./config/DMRIds.dat:/config/DMRIds.dat:ro
+      - ./config/FCSRooms.txt:/config/FCSRooms.txt
+      - ./log:/log
+    networks:
+      mmdvm:
+        ipv4_address: 10.10.2.2
+    devices:
+      - /dev/MMDVM:/dev/MMDVM
+    restart: always
+    env_file:
+     - .env
+
+  dmrgateway:
+    build: ./dmrgateway
+    container_name: dmrateway
+    volumes:
+      - ./config/DMRGateway.ini:/config/DMRGateway.ini
+      - ./config/DMRIds.dat:/config/DMRIds.dat:ro
+      - ./config/FCSRooms.txt:/config/FCSRooms.txt
+      - ./log:/log
+    networks:
+      mmdvm:
+        ipv4_address: 10.10.2.12
+    restart: always
+    env_file:
+     - .env
+
+  xlxd:
+    build: ./xlxd
+    container_name: xlxd
+    volumes:
+      - ./config/DMRGateway.ini:/config/DMRGateway.ini
+      - ./config/DMRIds.dat:/config/DMRIds.dat:ro
+      - ./config/FCSRooms.txt:/config/FCSRooms.txt
+      - ./log:/log
+
+    ports:
+      - 10100:10100/udp
+      - 30001:30001/udp
+      - 20001:20001/udp
+      - 30051:30051/udp
+      - 10002:10002/udp
+      - 42000:42000/udp
+      - 40000:40000/udp
+      - 12346:12346/udp
+      - 12345:12345/udp
+      - 21110:21110/udp
+    networks:
+      mmdvm:
+        ipv4_address: 10.10.2.13
+    restart: always
+    env_file:
+     - .env
+
+
+  dgidgateway:
+    build: ./dgidgateway
+    container_name: digidgateway
+    volumes:
+      - ./config/DGIdGateway.ini:/config/DGIdGateway.ini:ro
+      - ./config/YSFHosts.txt:/config/YSFHosts.txt:ro
+      - ./log:/log
+    networks:
+      mmdvm:
+        ipv4_address: 10.10.2.3
+    restart: unless-stopped
+    env_file:
+     - .env
+
+
+
+#  ysf2dmr:
+#    build: ./ysf2dmr
+#    container_name: ysf2dmr
+#    volumes:
+#      - ./config/YSF2DMR.ini:/config/YSF2DMR.ini
+#      - ./config/DMRIds.dat:/config/DMRIds.dat:ro
+#      - ./config/TGList_BM.txt:/config/TGList_BM.txt:ro
+#      - ./log:/log
+#    networks:
+#      mmdvm:
+#        ipv4_address: 10.10.2.5
+#    restart: unless-stopped        
+#    env_file:
+#     - .env
+
+#volumes:
+#  mmdvmhost:
+#  dmrgateway:
+#  log-dmrgateway:
+#  log-mmdvm:
+#  log-YSFGateway:
+networks:
+  mmdvm:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.10.2.0/24
